@@ -5,11 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun SetupScreen() {
+fun SetupScreen(onStart: (Int, Int) -> Unit) {
 
     var nLevel by remember { mutableStateOf(2) }
     var duration by remember { mutableStateOf(120) }
@@ -22,7 +23,7 @@ fun SetupScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text("Smriti", style = MaterialTheme.typography.headlineMedium)
+        Text("Smruthi", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -56,11 +57,17 @@ fun SetupScreen() {
 
         Button(
             onClick = {
-                // For now just log start
+                onStart(nLevel, duration)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Start Training")
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSetup() {
+    SetupScreen { _, _ -> }
 }
