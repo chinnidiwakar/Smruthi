@@ -12,13 +12,19 @@ data class EngineState(
     val hits: Int = 0,
     val misses: Int = 0,
     val falseAlarms: Int = 0,
-    val correctRejections: Int = 0
+    val correctRejections: Int = 0,
+    val averageHitReactionTimeMs: Long = 0,
+    val averageFalseAlarmReactionTimeMs: Long = 0
 )
 
 class NBackEngine(
     private val nLevel: Int
 ) {
 
+    private var stimulusStartTime: Long = 0L
+
+    private val hitReactionTimes = mutableListOf<Long>()
+    private val falseAlarmReactionTimes = mutableListOf<Long>()
     private val stimulusHistory = mutableListOf<Char>()
 
     private var isCurrentTarget = false
@@ -43,6 +49,8 @@ class NBackEngine(
                 .filter { it != forbidden }
                 .random()
 
+            stimulusStartTime = System.currentTimeMillis()
+
             isCurrentTarget = false
         }
 
@@ -60,10 +68,28 @@ class NBackEngine(
 
         userRespondedThisRound = true
 
+        val reactionTime = System.currentTimeMillis() - stimulusStartTime
+
         state = if (isCurrentTarget) {
-            state.copy(hits = state.hits + 1)
+
+            hitReactionTimes.add(reactionTime)
+
+            state.copy(
+                hits = state.hits + 1,
+                averageHitReactionTimeMs =
+                    hitReactionTimes.average().toLong()
+
+            )
+
         } else {
-            state.copy(falseAlarms = state.falseAlarms + 1)
+
+            falseAlarmReactionTimes.add(reactionTime)
+
+            state.copy(
+                falseAlarms = state.falseAlarms + 1,
+                averageFalseAlarmReactionTimeMs =
+                    falseAlarmReactionTimes.average().toLong()
+            )
         }
 
         return state

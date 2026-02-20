@@ -20,7 +20,7 @@ private val LETTERS = listOf(
 fun GameScreen(
     nLevel: Int,
     duration: Int,
-    onFinish: (Int, Int, Int, Int) -> Unit
+    onFinish: (Int, Int, Int, Int, Long, Long) -> Unit
 ) {
 
     val viewModel: GameViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -37,7 +37,9 @@ fun GameScreen(
                 uiState.hits,
                 uiState.misses,
                 uiState.falseAlarms,
-                uiState.correctRejections
+                uiState.correctRejections,
+                uiState.averageHitReactionTimeMs,
+                uiState.averageFalseAlarmReactionTimeMs
             )
         }
     }

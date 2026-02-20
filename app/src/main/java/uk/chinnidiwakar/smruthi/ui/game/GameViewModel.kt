@@ -73,7 +73,9 @@ class GameViewModel : ViewModel() {
             hits = engineState.hits,
             misses = engineState.misses,
             falseAlarms = engineState.falseAlarms,
-            correctRejections = engineState.correctRejections
+            correctRejections = engineState.correctRejections,
+            averageHitReactionTimeMs = engineState.averageHitReactionTimeMs,
+            averageFalseAlarmReactionTimeMs = engineState.averageFalseAlarmReactionTimeMs
         )
     }
 
@@ -82,8 +84,13 @@ class GameViewModel : ViewModel() {
         val engineState = engine.onMatchPressed()
 
         _uiState.value = _uiState.value.copy(
+            currentLetter = engineState.currentLetter.toString(),
             hits = engineState.hits,
-            falseAlarms = engineState.falseAlarms
+            misses = engineState.misses,
+            falseAlarms = engineState.falseAlarms,
+            correctRejections = engineState.correctRejections,
+            averageHitReactionTimeMs = engineState.averageHitReactionTimeMs,
+            averageFalseAlarmReactionTimeMs = engineState.averageFalseAlarmReactionTimeMs
         )
     }
 
@@ -92,8 +99,13 @@ class GameViewModel : ViewModel() {
         val engineState = engine.evaluateMiss()
 
         _uiState.value = _uiState.value.copy(
+            currentLetter = engineState.currentLetter.toString(),
+            hits = engineState.hits,
             misses = engineState.misses,
-            correctRejections = engineState.correctRejections
+            falseAlarms = engineState.falseAlarms,
+            correctRejections = engineState.correctRejections,
+            averageHitReactionTimeMs = engineState.averageHitReactionTimeMs,
+            averageFalseAlarmReactionTimeMs = engineState.averageFalseAlarmReactionTimeMs
         )
     }
 }

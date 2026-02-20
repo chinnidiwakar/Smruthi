@@ -6,5 +6,7 @@ data class GameUiState(
     val hits: Int = 0,
     val misses: Int = 0,
     val falseAlarms: Int = 0,
-    val correctRejections: Int = 0
+    val correctRejections: Int = 0,
+    val averageHitReactionTimeMs: Long = 0,
+    val averageFalseAlarmReactionTimeMs: Long = 0
 )

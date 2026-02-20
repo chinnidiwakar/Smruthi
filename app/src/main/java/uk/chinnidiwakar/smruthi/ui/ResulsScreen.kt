@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import uk.chinnidiwakar.smruthi.ui.game.GameUiState
+
 
 @Composable
 fun ResultsScreen(
@@ -13,6 +15,8 @@ fun ResultsScreen(
     misses: Int,
     falseAlarms: Int,
     correctRejections: Int,
+    averageHitReactionTimeMs: Long,
+    averageFalseAlarmReactionTimeMs: Long,
     onDone: () -> Unit
 ) {
 
@@ -43,6 +47,8 @@ fun ResultsScreen(
         Text("Misses: $misses")
         Text("False Alarms: $falseAlarms")
         Text("Correct Rejections: $correctRejections")
+        Text("Avg Hit RT: ${averageHitReactionTimeMs} ms")
+        Text("Avg False RT: ${averageFalseAlarmReactionTimeMs} ms")
 
         Spacer(modifier = Modifier.height(32.dp))
 
