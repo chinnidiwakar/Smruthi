@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,11 +18,22 @@ import uk.chinnidiwakar.smruthi.ui.ResultsScreen
 import uk.chinnidiwakar.smruthi.ui.SetupScreen
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationFlow
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationResultScreen
+import uk.chinnidiwakar.smruthi.ui.tutorial.TutorialScreen
 
 object NavigationGraph {
     @Composable
     fun AppNavGraph() {
         val navController = rememberNavController()
+        val context = LocalContext.current
+        val prefs = remember(context) { context.getSharedPreferences("smruthi_prefs", 0) }
+        var hasSeenTutorial by remember { mutableStateOf(prefs.getBoolean("has_seen_tutorial", false)) }
+
+        fun markTutorialSeen() {
+            if (!hasSeenTutorial) {
+                hasSeenTutorial = true
+                prefs.edit().putBoolean("has_seen_tutorial", true).apply()
+            }
+        }
 
         var hasCalibrated by remember { mutableStateOf(false) }
         var recommendedN by remember { mutableIntStateOf(2) }
@@ -30,13 +42,40 @@ object NavigationGraph {
 
         NavHost(
             navController = navController,
-            startDestination = "home"
+            startDestination = if (hasSeenTutorial) "home" else "tutorial/first_launch"
         ) {
             composable("home") {
                 HomeScreen(
                     hasCalibrated = hasCalibrated,
                     onStartTraining = { navController.navigate("setup") },
-                    onRunCalibration = { navController.navigate("calibration") }
+                    onRunCalibration = { navController.navigate("calibration") },
+                    onViewTutorial = { navController.navigate("tutorial/home") }
+                )
+            }
+
+            composable("tutorial/first_launch") {
+                TutorialScreen(
+                    continueLabel = "Go to Home",
+                    onContinue = {
+                        markTutorialSeen()
+                        navController.navigate("home") {
+                            popUpTo("tutorial/first_launch") { inclusive = true }
+                        }
+                    },
+                    onSkip = {
+                        markTutorialSeen()
+                        navController.navigate("home") {
+                            popUpTo("tutorial/first_launch") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable("tutorial/home") {
+                TutorialScreen(
+                    continueLabel = "Back to Home",
+                    onContinue = { navController.popBackStack() },
+                    onSkip = { navController.popBackStack() }
                 )
             }
 
