@@ -2,7 +2,6 @@ package uk.chinnidiwakar.smruthi.ui.tutorial
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -181,17 +180,9 @@ private fun ExampleSequence(
     nLevel: Int,
     letters: List<Char>
 ) {
-    var activeIndex by remember(nLevel, letters) { mutableIntStateOf(0) }
-
-    LaunchedEffect(nLevel, letters) {
-        while (true) {
-            delay(700)
-            activeIndex = (activeIndex + 1) % letters.size
-        }
-    }
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "example")
 
-    // Animate a float that continuously increases
+    // Animate time progression across the sequence
     val progress by transition.animateFloat(
         initialValue = 0f,
         targetValue = letters.size.toFloat(),
@@ -204,7 +195,7 @@ private fun ExampleSequence(
         label = "progress"
     )
 
-    // Convert animation progress → current index
+    // Derive the active index from animation time
     val activeIndex = progress.toInt() % letters.size
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
