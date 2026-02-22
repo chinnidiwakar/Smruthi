@@ -18,7 +18,7 @@ data class EngineState(
 )
 
 class NBackEngine(
-    private val nLevel: Int
+    private var nLevel: Int
 ) {
     private var stimulusStartTime: Long = 0L
 
@@ -30,6 +30,13 @@ class NBackEngine(
     private var userRespondedThisRound = false
 
     private var state = EngineState()
+
+    fun updateNLevel(newN: Int) {
+        nLevel = newN.coerceAtLeast(1)
+        stimulusHistory.clear()
+        isCurrentTarget = false
+        userRespondedThisRound = false
+    }
 
     fun nextStimulus(): EngineState {
         val newLetter: Char

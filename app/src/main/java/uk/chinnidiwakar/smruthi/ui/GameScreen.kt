@@ -11,13 +11,19 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -27,18 +33,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import uk.chinnidiwakar.smruthi.domain.SessionSummary
-import uk.chinnidiwakar.smruthi.ui.game.GameViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
+import uk.chinnidiwakar.smruthi.domain.SessionSummary
+import uk.chinnidiwakar.smruthi.ui.game.GameViewModel
 
 @Composable
 fun GameScreen(
     nLevel: Int,
     duration: Int,
     onFinish: (SessionSummary) -> Unit,
-    gameViewModel: GameViewModel = viewModel()
+    gameViewModel: GameViewModel = viewModel(),
+    trialCount: Int? = null,
+    stimulusIntervalMs: Int = 1000,
+    adaptiveEnabled: Boolean = false,
+    adaptiveBlockSize: Int = 20
 ) {
     val scope = rememberCoroutineScope()
     val uiState by gameViewModel.uiState.collectAsState()
@@ -47,8 +56,15 @@ fun GameScreen(
     val haptics = LocalHapticFeedback.current
     var flash by remember { mutableStateOf(false) }
 
-    LaunchedEffect(nLevel, duration) {
-        gameViewModel.startGame(nLevel, duration)
+    LaunchedEffect(nLevel, duration, trialCount, stimulusIntervalMs, adaptiveEnabled, adaptiveBlockSize) {
+        gameViewModel.startGame(
+            n = nLevel,
+            durationSeconds = duration,
+            trialCount = trialCount,
+            stimulusIntervalMs = stimulusIntervalMs,
+            adaptiveEnabled = adaptiveEnabled,
+            adaptiveBlockSize = adaptiveBlockSize
+        )
     }
 
     LaunchedEffect(finishEvent) {
@@ -69,14 +85,12 @@ fun GameScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-
-            // ---- HUD (Minimal) ----
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "N-$nLevel",
+                    text = "N-${uiState.currentNLevel}",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -87,7 +101,6 @@ fun GameScreen(
                 )
             }
 
-            // ---- Stimulus Field ----
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -104,7 +117,7 @@ fun GameScreen(
                                 stiffness = Spring.StiffnessLow
                             )
                         ) + fadeIn()) togetherWith
-                                (scaleOut(targetScale = 1.2f) + fadeOut())
+                            (scaleOut(targetScale = 1.2f) + fadeOut())
                     },
                     label = "stimulus"
                 ) { letter ->
@@ -121,14 +134,12 @@ fun GameScreen(
                 }
             }
 
-            // ---- Response Pad ----
             FilledTonalButton(
                 onClick = {
                     flash = true
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     gameViewModel.onMatchPressed()
 
-                    // Launch animation reset safely from event scope
                     scope.launch {
                         delay(90)
                         flash = false
