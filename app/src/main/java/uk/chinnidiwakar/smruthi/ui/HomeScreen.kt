@@ -1,121 +1,123 @@
 package uk.chinnidiwakar.smruthi.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import uk.chinnidiwakar.smruthi.domain.SessionSummary
 
 @Composable
 fun HomeScreen(
     hasCalibrated: Boolean,
+    recommendedN: Int?,
+    lastSummary: SessionSummary?,
+    streakDays: Int,
     onStartTraining: () -> Unit,
     onRunCalibration: () -> Unit,
-    onViewTutorial: () -> Unit
+    onViewTutorial: () -> Unit,
+    onViewTrends: () -> Unit
 ) {
+    val appeared = remember { androidx.compose.animation.core.Animatable(0f) }
+
+    // Entrance animation (quick, calm)
+    LaunchedEffect(Unit) {
+        appeared.animateTo(1f, animationSpec = tween(450))
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(horizontal = 24.dp)
+            .graphicsLayer { alpha = appeared.value },
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
 
+        Spacer(Modifier.height(8.dp))
+
+        // ---- Header ----
         Column {
-
-            Spacer(modifier = Modifier.height(32.dp))
-
+            Text("Smruthi", style = MaterialTheme.typography.headlineLarge)
             Text(
-                text = "Smruthi",
-                style = MaterialTheme.typography.headlineLarge
+                "Working Memory Training",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Cognitive Training System",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (!hasCalibrated) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        // ---- Recommended Level ----
+        if (hasCalibrated && recommendedN != null) {
+            ElevatedCard {
+                Column(Modifier.padding(20.dp)) {
+                    Text("Recommended Level", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "N-$recommendedN",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Calibration Recommended",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Run calibration to determine your optimal training level.",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
 
-        Column {
+        // ---- Streak Indicator ----
+        if (streakDays > 0) {
+            AssistChip(
+                onClick = {},
+                label = { Text("🔥 $streakDays day streak") }
+            )
+        }
 
-            Button(
-                onClick = onStartTraining,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text("Start Training")
+        // ---- Last Session Preview ----
+        if (lastSummary != null) {
+            ElevatedCard {
+                Column(Modifier.padding(20.dp)) {
+                    Text("Last Session", style = MaterialTheme.typography.titleMedium)
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text("Hits: ${lastSummary.hits}")
+                    Text("Misses: ${lastSummary.misses}")
+                    Text("False Alarms: ${lastSummary.falseAlarms}")
+                }
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        // ---- Primary Action ----
+        Button(
+            onClick = onStartTraining,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+        ) {
+            Text("Start Training", style = MaterialTheme.typography.titleMedium)
+        }
+
+        // ---- Secondary Actions ----
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
             OutlinedButton(
                 onClick = onRunCalibration,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text("Run Calibration")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextButton(
-                onClick = onViewTutorial,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("View Tutorial")
+                Text(if (hasCalibrated) "Recalibrate" else "Run Calibration")
             }
 
-            TextButton(
-                onClick = onViewTrends,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("View Trends & Export")
+            TextButton(onClick = onViewTutorial, modifier = Modifier.fillMaxWidth()) {
+                Text("How This Works")
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            TextButton(onClick = onViewTrends, modifier = Modifier.fillMaxWidth()) {
+                Text("Progress & Export Data")
+            }
         }
     }
 }

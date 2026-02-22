@@ -37,6 +37,9 @@ class NBackEngine(
         stimulusHistory.clear()
         isCurrentTarget = false
         userRespondedThisRound = false
+        lastLetter = null
+        runLength = 0
+    }
     private fun applyRunLimit(candidate: Char): Char {
         // If we already repeated twice, force a different draw
         if (candidate == lastLetter && runLength >= 2) {

@@ -32,6 +32,7 @@ object NavigationGraph {
         val navController = rememberNavController()
         val context = LocalContext.current
         val prefs = remember(context) { context.getSharedPreferences("smruthi_prefs", 0) }
+        val historyStore = remember { SessionHistoryStore(context) }
 
         var hasSeenTutorial by remember {
             mutableStateOf(prefs.getBoolean("has_seen_tutorial", false))
@@ -60,9 +61,13 @@ object NavigationGraph {
             composable("home") {
                 HomeScreen(
                     hasCalibrated = hasCalibrated,
+                    recommendedN = recommendedN,
+                    lastSummary = latestSummary,
+                    streakDays = historyStore.getCurrentStreak(),
                     onStartTraining = { navController.navigate("setup") },
                     onRunCalibration = { navController.navigate("calibration") },
-                    onViewTutorial = { navController.navigate("tutorial/home") }
+                    onViewTutorial = { navController.navigate("tutorial/home") },
+                    onViewTrends = { navController.navigate("trends") }
                 )
             }
 

@@ -180,17 +180,8 @@ private fun ExampleSequence(
     nLevel: Int,
     letters: List<Char>
 ) {
-    var activeIndex by remember(nLevel, letters) { mutableIntStateOf(0) }
-
-    LaunchedEffect(nLevel, letters) {
-        while (true) {
-            delay(700)
-            activeIndex = (activeIndex + 1) % letters.size
-        }
-    }
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "example")
 
-    // Animate time progression across the sequence
     val progress by transition.animateFloat(
         initialValue = 0f,
         targetValue = letters.size.toFloat(),
@@ -203,7 +194,6 @@ private fun ExampleSequence(
         label = "progress"
     )
 
-    // Derive the active index from animation time
     val activeIndex = progress.toInt() % letters.size
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -219,19 +209,6 @@ private fun ExampleSequence(
                         .size(52.dp)
                         .border(
                             width = if (isCurrent) 2.dp else 1.dp,
-                            color = if (isCurrent) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.outlineVariant
-                            },
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .background(
-                            color = if (isCurrent && isMatch) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            },
                             color = if (isCurrent)
                                 MaterialTheme.colorScheme.primary
                             else

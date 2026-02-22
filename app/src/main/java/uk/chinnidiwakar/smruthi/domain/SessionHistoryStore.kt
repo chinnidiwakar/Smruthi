@@ -24,6 +24,45 @@ data class DayTrend(
 class SessionHistoryStore(context: Context) {
     private val prefs = context.getSharedPreferences("smruthi_history", Context.MODE_PRIVATE)
     private val key = "sessions_json"
+    private fun loadSessionsSortedByDate(): List<StoredSession> {
+        return getAll().sortedByDescending { it.timestampMs }
+    }
+
+    private val DAY_MS = 24L * 60L * 60L * 1000L
+
+    private fun toDayStart(timestamp: Long): Long {
+        val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    fun getCurrentStreak(): Int {
+        val sessions = loadSessionsSortedByDate()
+        if (sessions.isEmpty()) return 0
+
+        var streak = 1
+        var lastDay = toDayStart(sessions.first().timestampMs)
+
+        for (i in 1 until sessions.size) {
+            val thisDay = toDayStart(sessions[i].timestampMs)
+            val diffDays = ((lastDay - thisDay) / DAY_MS).toInt()
+
+            if (diffDays == 1) {
+                streak++
+                lastDay = thisDay
+            } else if (diffDays == 0) {
+                // same day → ignore duplicate session
+                continue
+            } else {
+                break
+            }
+        }
+
+        return streak
+    }
 
     fun addSession(summary: SessionSummary, protocol: String) {
         val all = getAllMutable()
