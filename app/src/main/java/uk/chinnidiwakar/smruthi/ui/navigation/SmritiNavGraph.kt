@@ -12,12 +12,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import uk.chinnidiwakar.smruthi.domain.CalibrationResult
+import uk.chinnidiwakar.smruthi.domain.SessionHistoryStore
 import uk.chinnidiwakar.smruthi.domain.SessionSummary
 import uk.chinnidiwakar.smruthi.ui.GameScreen
 import uk.chinnidiwakar.smruthi.ui.HomeScreen
 import uk.chinnidiwakar.smruthi.ui.ResultsScreen
 import uk.chinnidiwakar.smruthi.ui.SetupScreen
+import uk.chinnidiwakar.smruthi.ui.TrainingConfig
+import uk.chinnidiwakar.smruthi.ui.TrainingProtocol
+import uk.chinnidiwakar.smruthi.ui.TrendsDashboardScreen
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationFlow
+import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationPracticeGateScreen
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationResultScreen
 import uk.chinnidiwakar.smruthi.ui.tutorial.TutorialScreen
 
@@ -117,30 +122,35 @@ object NavigationGraph {
             composable("setup") {
                 SetupScreen(
                     defaultNLevel = recommendedN,
-                    onStart = { nLevel, duration ->
-                        navController.currentBackStackEntry?.savedStateHandle?.set("nLevel", nLevel)
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            "duration",
-                            duration
-                        )
+                    onStart = { config: TrainingConfig ->
+                        navController.currentBackStackEntry?.savedStateHandle?.set("nLevel", config.nLevel)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("duration", config.durationSeconds)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("protocol", config.protocol.name)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("adaptive", config.protocol.adaptive)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("stimulusMs", config.protocol.stimulusMs)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("blockSize", config.protocol.blockSize)
                         navController.navigate("game")
                     }
                 )
             }
 
             composable("game") {
-                val nLevel = navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.get<Int>("nLevel") ?: recommendedN
-                val duration = navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.get<Int>("duration") ?: 120
+                val nLevel = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("nLevel") ?: recommendedN
+                val duration = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("duration") ?: 120
+                val protocolName = navController.previousBackStackEntry?.savedStateHandle?.get<String>("protocol") ?: TrainingProtocol.STANDARD.name
+                val adaptive = navController.previousBackStackEntry?.savedStateHandle?.get<Boolean>("adaptive") ?: true
+                val stimulusMs = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("stimulusMs") ?: 1000
+                val blockSize = navController.previousBackStackEntry?.savedStateHandle?.get<Int>("blockSize") ?: 20
 
                 GameScreen(
                     nLevel = nLevel,
                     duration = duration,
+                    stimulusIntervalMs = stimulusMs,
+                    adaptiveEnabled = adaptive,
+                    adaptiveBlockSize = blockSize,
                     onFinish = { summary ->
                         latestSummary = summary
+                        historyStore.addSession(summary, protocolName)
                         navController.navigate("results")
                     }
                 )
@@ -150,6 +160,26 @@ object NavigationGraph {
                 ResultsScreen(
                     summary = latestSummary,
                     onDone = {
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable("trends") {
+                TrendsDashboardScreen(
+                    trends = historyStore.getWeeklyTrends(),
+                    exportJson = historyStore.exportAsJson(30),
+                    exportCsv = historyStore.exportAsCsv(30),
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable("calibration_practice") {
+                CalibrationPracticeGateScreen(
+                    onReady = { navController.navigate("calibration") },
+                    onBackHome = {
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
                         }
@@ -175,6 +205,10 @@ object NavigationGraph {
                     onStartTraining = { nLevel ->
                         navController.currentBackStackEntry?.savedStateHandle?.set("nLevel", nLevel)
                         navController.currentBackStackEntry?.savedStateHandle?.set("duration", 120)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("protocol", TrainingProtocol.STANDARD.name)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("adaptive", true)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("stimulusMs", 1000)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("blockSize", 20)
                         navController.navigate("game")
                     },
                     onBackHome = {

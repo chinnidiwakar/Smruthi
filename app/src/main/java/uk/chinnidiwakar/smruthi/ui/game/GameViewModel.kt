@@ -6,22 +6,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 import uk.chinnidiwakar.smruthi.domain.NBackEngine
-import uk.chinnidiwakar.smruthi.domain.PerformanceHistory
+import uk.chinnidiwakar.smruthi.domain.PerformanceEvaluator
 import uk.chinnidiwakar.smruthi.domain.SessionSummary
-
-private val LETTERS = listOf(
-    'B','C','D','F','G','H','J','K','L',
-    'M','N','P','Q','R','S','T','V','X','Z'
-)
-
 
 class GameViewModel : ViewModel() {
 
     private lateinit var engine: NBackEngine
     private var duration: Int = 60
-    private var trialCount: Int? = null
     private var sessionSummary: SessionSummary? = null
 
     fun getSessionSummary(): SessionSummary? = sessionSummary
@@ -31,40 +23,40 @@ class GameViewModel : ViewModel() {
     private val _finishEvent = MutableStateFlow(false)
     val finishEvent: StateFlow<Boolean> = _finishEvent
 
-    private val stimulusHistory = mutableListOf<Char>()
-
     private var nLevel = 2
-
-    private var isCurrentTarget = false
-    private var userRespondedThisRound = false
-    private val performanceHistory = PerformanceHistory()
-
 
     fun startGame(
         n: Int,
         durationSeconds: Int? = null,
-        trialCount: Int? = null
+        trialCount: Int? = null,
+        stimulusIntervalMs: Int = 1000,
+        adaptiveEnabled: Boolean = false,
+        adaptiveBlockSize: Int = 20
     ) {
 
         nLevel = n
         this.duration = durationSeconds ?: 60
-        this.trialCount = trialCount
 
-        stimulusHistory.clear()
         engine = NBackEngine(n)
 
         _finishEvent.value = false
-        _uiState.value = GameUiState()
+        _uiState.value = GameUiState(currentNLevel = nLevel)
 
         viewModelScope.launch {
 
+            var stimuliSinceAdaptiveCheck = 0
+
             if (trialCount != null) {
-
                 repeat(trialCount) {
-
                     generateStimulus()
-                    delay(1000)
+                    delay(stimulusIntervalMs.toLong())
                     evaluateMiss()
+                    stimuliSinceAdaptiveCheck++
+
+                    if (adaptiveEnabled && stimuliSinceAdaptiveCheck >= adaptiveBlockSize) {
+                        adaptDifficultyIfNeeded()
+                        stimuliSinceAdaptiveCheck = 0
+                    }
                 }
 
                 finishSession()
@@ -75,9 +67,7 @@ class GameViewModel : ViewModel() {
 
             while (true) {
 
-                val elapsed =
-                    ((System.currentTimeMillis() - startTime) / 1000).toInt()
-
+                val elapsed = ((System.currentTimeMillis() - startTime) / 1000).toInt()
                 val remaining = duration - elapsed
 
                 if (remaining <= 0) {
@@ -87,13 +77,35 @@ class GameViewModel : ViewModel() {
 
                 generateStimulus()
 
-                _uiState.value = _uiState.value.copy(
-                    timeRemaining = remaining
-                )
+                _uiState.value = _uiState.value.copy(timeRemaining = remaining)
 
-                delay(1000)
+                delay(stimulusIntervalMs.toLong())
                 evaluateMiss()
+                stimuliSinceAdaptiveCheck++
+
+                if (adaptiveEnabled && stimuliSinceAdaptiveCheck >= adaptiveBlockSize) {
+                    adaptDifficultyIfNeeded()
+                    stimuliSinceAdaptiveCheck = 0
+                }
             }
+        }
+    }
+
+    private fun adaptDifficultyIfNeeded() {
+        val current = _uiState.value
+        val recommendation = PerformanceEvaluator.evaluate(
+            currentN = nLevel,
+            hits = current.hits,
+            misses = current.misses,
+            falseAlarms = current.falseAlarms,
+            correctRejections = current.correctRejections,
+            avgHitRt = current.averageHitReactionTimeMs
+        )
+
+        if (recommendation.suggestedN != nLevel) {
+            nLevel = recommendation.suggestedN
+            engine.updateNLevel(nLevel)
+            _uiState.value = _uiState.value.copy(currentNLevel = nLevel)
         }
     }
 
@@ -109,7 +121,6 @@ class GameViewModel : ViewModel() {
             averageFalseAlarmReactionTimeMs = _uiState.value.averageFalseAlarmReactionTimeMs
         )
 
-        performanceHistory.addSession(sessionSummary!!)
         _finishEvent.value = true
     }
 
@@ -121,6 +132,7 @@ class GameViewModel : ViewModel() {
             stimulusIndex = _uiState.value.stimulusIndex + 1,  // <-- KEY LINE
 
             currentLetter = engineState.currentLetter.toString(),
+            currentNLevel = nLevel,
             hits = engineState.hits,
             misses = engineState.misses,
             falseAlarms = engineState.falseAlarms,
@@ -136,6 +148,7 @@ class GameViewModel : ViewModel() {
 
         _uiState.value = _uiState.value.copy(
             currentLetter = engineState.currentLetter.toString(),
+            currentNLevel = nLevel,
             hits = engineState.hits,
             misses = engineState.misses,
             falseAlarms = engineState.falseAlarms,
@@ -151,6 +164,7 @@ class GameViewModel : ViewModel() {
 
         _uiState.value = _uiState.value.copy(
             currentLetter = engineState.currentLetter.toString(),
+            currentNLevel = nLevel,
             hits = engineState.hits,
             misses = engineState.misses,
             falseAlarms = engineState.falseAlarms,

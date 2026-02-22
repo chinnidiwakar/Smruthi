@@ -180,6 +180,14 @@ private fun ExampleSequence(
     nLevel: Int,
     letters: List<Char>
 ) {
+    var activeIndex by remember(nLevel, letters) { mutableIntStateOf(0) }
+
+    LaunchedEffect(nLevel, letters) {
+        while (true) {
+            delay(700)
+            activeIndex = (activeIndex + 1) % letters.size
+        }
+    }
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "example")
 
     // Animate time progression across the sequence
@@ -211,6 +219,19 @@ private fun ExampleSequence(
                         .size(52.dp)
                         .border(
                             width = if (isCurrent) 2.dp else 1.dp,
+                            color = if (isCurrent) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant
+                            },
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .background(
+                            color = if (isCurrent && isMatch) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            },
                             color = if (isCurrent)
                                 MaterialTheme.colorScheme.primary
                             else

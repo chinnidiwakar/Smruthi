@@ -18,7 +18,7 @@ data class EngineState(
 )
 
 class NBackEngine(
-    private val nLevel: Int
+    private var nLevel: Int
 ) {
     private var stimulusStartTime: Long = 0L
 
@@ -32,6 +32,11 @@ class NBackEngine(
 
     private var state = EngineState()
 
+    fun updateNLevel(newN: Int) {
+        nLevel = newN.coerceAtLeast(1)
+        stimulusHistory.clear()
+        isCurrentTarget = false
+        userRespondedThisRound = false
     private fun applyRunLimit(candidate: Char): Char {
         // If we already repeated twice, force a different draw
         if (candidate == lastLetter && runLength >= 2) {
