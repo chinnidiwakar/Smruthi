@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uk.chinnidiwakar.smruthi.domain.SessionSummary
 import uk.chinnidiwakar.smruthi.ui.game.GameViewModel
 
 private val LETTERS = listOf(
@@ -20,7 +21,7 @@ private val LETTERS = listOf(
 fun GameScreen(
     nLevel: Int,
     duration: Int,
-    onFinish: (Int, Int, Int, Int, Long, Long) -> Unit
+    onFinish: (SessionSummary) -> Unit
 ) {
 
     val viewModel: GameViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -33,14 +34,10 @@ fun GameScreen(
 
     LaunchedEffect(finishEvent) {
         if (finishEvent) {
-            onFinish(
-                uiState.hits,
-                uiState.misses,
-                uiState.falseAlarms,
-                uiState.correctRejections,
-                uiState.averageHitReactionTimeMs,
-                uiState.averageFalseAlarmReactionTimeMs
-            )
+            val summary = viewModel.getSessionSummary()
+            if (summary != null) {
+                onFinish(summary)
+            }
         }
     }
 

@@ -6,25 +6,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import uk.chinnidiwakar.smruthi.domain.PerformanceEvaluator
 import uk.chinnidiwakar.smruthi.ui.game.GameUiState
+import uk.chinnidiwakar.smruthi.ui.game.GameViewModel
 
 
 @Composable
 fun ResultsScreen(
-    hits: Int,
-    misses: Int,
-    falseAlarms: Int,
-    correctRejections: Int,
-    averageHitReactionTimeMs: Long,
-    averageFalseAlarmReactionTimeMs: Long,
     onDone: () -> Unit
 ) {
 
-    val total = hits + misses + falseAlarms + correctRejections
+    val viewModel: GameViewModel = viewModel()
+    val summary = viewModel.getSessionSummary()
+    if (summary == null) {
+        Text("No session data available.")
+        return
+    }
+
+    val total = summary.hits + summary.misses + summary.falseAlarms + summary.correctRejections
     val accuracy =
         if (total > 0)
-            ((hits + correctRejections).toFloat() / total * 100).toInt()
+            ((summary.hits + summary.correctRejections).toFloat() / total * 100).toInt()
         else 0
+
+    val recommendation = PerformanceEvaluator.evaluate(
+        currentN = summary.nLevel,
+        hits = summary.hits,
+        misses = summary.misses,
+        falseAlarms = summary.falseAlarms,
+        correctRejections = summary.correctRejections,
+        avgHitRt = summary.averageHitReactionTimeMs
+    )
 
     Column(
         modifier = Modifier
@@ -43,12 +56,18 @@ fun ResultsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Hits: $hits")
-        Text("Misses: $misses")
-        Text("False Alarms: $falseAlarms")
-        Text("Correct Rejections: $correctRejections")
-        Text("Avg Hit RT: ${averageHitReactionTimeMs} ms")
-        Text("Avg False RT: ${averageFalseAlarmReactionTimeMs} ms")
+        Text("Hits: ${summary.hits}")
+        Text("Misses: ${summary.misses}")
+        Text("False Alarms: ${summary.falseAlarms}")
+        Text("Correct Rejections: ${summary.correctRejections}")
+        Text("Avg Hit RT: ${summary.averageHitReactionTimeMs} ms")
+        Text("Avg False RT: ${summary.averageFalseAlarmReactionTimeMs} ms")
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = recommendation.message,
+            style = MaterialTheme.typography.bodyLarge
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 

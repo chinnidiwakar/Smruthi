@@ -8,14 +8,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import uk.chinnidiwakar.smruthi.domain.NBackEngine
+import uk.chinnidiwakar.smruthi.domain.PerformanceHistory
+import uk.chinnidiwakar.smruthi.domain.SessionSummary
 
 private val LETTERS = listOf(
     'B','C','D','F','G','H','J','K','L',
     'M','N','P','Q','R','S','T','V','X','Z'
 )
-private lateinit var engine: NBackEngine
+
 
 class GameViewModel : ViewModel() {
+
+    private lateinit var engine: NBackEngine
+    private var duration: Int = 60
+    private var trialCount: Int? = null
+    private var sessionSummary: SessionSummary? = null
+
+    fun getSessionSummary(): SessionSummary? = sessionSummary
 
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState
@@ -25,18 +34,42 @@ class GameViewModel : ViewModel() {
     private val stimulusHistory = mutableListOf<Char>()
 
     private var nLevel = 2
-    private var duration = 60
 
     private var isCurrentTarget = false
     private var userRespondedThisRound = false
+    private val performanceHistory = PerformanceHistory()
 
-    fun startGame(n: Int, durationSeconds: Int) {
+
+    fun startGame(
+        n: Int,
+        durationSeconds: Int? = null,
+        trialCount: Int? = null
+    ) {
+
         nLevel = n
-        duration = durationSeconds
+        this.duration = durationSeconds ?: 60
+        this.trialCount = trialCount
+
         stimulusHistory.clear()
         engine = NBackEngine(n)
 
+        _finishEvent.value = false
+        _uiState.value = GameUiState()
+
         viewModelScope.launch {
+
+            if (trialCount != null) {
+
+                repeat(trialCount) {
+
+                    generateStimulus()
+                    delay(1000)
+                    evaluateMiss()
+                }
+
+                finishSession()
+                return@launch
+            }
 
             val startTime = System.currentTimeMillis()
 
@@ -46,8 +79,9 @@ class GameViewModel : ViewModel() {
                     ((System.currentTimeMillis() - startTime) / 1000).toInt()
 
                 val remaining = duration - elapsed
+
                 if (remaining <= 0) {
-                    _finishEvent.value = true
+                    finishSession()
                     break
                 }
 
@@ -58,10 +92,25 @@ class GameViewModel : ViewModel() {
                 )
 
                 delay(1000)
-
                 evaluateMiss()
             }
         }
+    }
+
+    private fun finishSession() {
+
+        sessionSummary = SessionSummary(
+            nLevel = nLevel,
+            hits = _uiState.value.hits,
+            misses = _uiState.value.misses,
+            falseAlarms = _uiState.value.falseAlarms,
+            correctRejections = _uiState.value.correctRejections,
+            averageHitReactionTimeMs = _uiState.value.averageHitReactionTimeMs,
+            averageFalseAlarmReactionTimeMs = _uiState.value.averageFalseAlarmReactionTimeMs
+        )
+
+        performanceHistory.addSession(sessionSummary!!)
+        _finishEvent.value = true
     }
 
     private fun generateStimulus() {
