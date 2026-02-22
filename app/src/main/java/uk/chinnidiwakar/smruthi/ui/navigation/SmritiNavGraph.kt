@@ -17,6 +17,7 @@ import uk.chinnidiwakar.smruthi.ui.ResultsScreen
 import uk.chinnidiwakar.smruthi.ui.SetupScreen
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationFlow
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationResultScreen
+import uk.chinnidiwakar.smruthi.ui.tutorial.TutorialScreen
 
 object NavigationGraph {
     @Composable
@@ -35,8 +36,33 @@ object NavigationGraph {
             composable("home") {
                 HomeScreen(
                     hasCalibrated = hasCalibrated,
-                    onStartTraining = { navController.navigate("setup") },
-                    onRunCalibration = { navController.navigate("calibration") }
+                    onStartTraining = { navController.navigate("tutorial/training") },
+                    onRunCalibration = { navController.navigate("tutorial/calibration") }
+                )
+            }
+
+
+            composable("tutorial/training") {
+                TutorialScreen(
+                    continueLabel = "Go to Training",
+                    onContinue = {
+                        navController.navigate("setup")
+                    },
+                    onSkip = {
+                        navController.navigate("setup")
+                    }
+                )
+            }
+
+            composable("tutorial/calibration") {
+                TutorialScreen(
+                    continueLabel = "Go to Calibration",
+                    onContinue = {
+                        navController.navigate("calibration")
+                    },
+                    onSkip = {
+                        navController.navigate("calibration")
+                    }
                 )
             }
 
