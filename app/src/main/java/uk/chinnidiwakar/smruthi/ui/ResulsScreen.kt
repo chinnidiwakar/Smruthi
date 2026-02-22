@@ -1,24 +1,27 @@
 package uk.chinnidiwakar.smruthi.ui
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uk.chinnidiwakar.smruthi.domain.PerformanceEvaluator
-import uk.chinnidiwakar.smruthi.ui.game.GameUiState
-import uk.chinnidiwakar.smruthi.ui.game.GameViewModel
-
+import uk.chinnidiwakar.smruthi.domain.SessionSummary
 
 @Composable
 fun ResultsScreen(
+    summary: SessionSummary?,
     onDone: () -> Unit
 ) {
-
-    val viewModel: GameViewModel = viewModel()
-    val summary = viewModel.getSessionSummary()
     if (summary == null) {
         Text("No session data available.")
         return
@@ -46,36 +49,30 @@ fun ResultsScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text("Session Complete", style = MaterialTheme.typography.headlineMedium)
 
-        Text("Session Complete",
-            style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text("Accuracy: $accuracy%")
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         Text("Hits: ${summary.hits}")
         Text("Misses: ${summary.misses}")
         Text("False Alarms: ${summary.falseAlarms}")
         Text("Correct Rejections: ${summary.correctRejections}")
         Text("Avg Hit RT: ${summary.averageHitReactionTimeMs} ms")
         Text("Avg False RT: ${summary.averageFalseAlarmReactionTimeMs} ms")
-        Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = recommendation.message,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Text(recommendation.message, style = MaterialTheme.typography.bodyLarge)
+
+        Spacer(modifier = Modifier.height(28.dp))
 
         Button(
             onClick = onDone,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Back to Setup")
+            Text("Back to Home")
         }
     }
 }
