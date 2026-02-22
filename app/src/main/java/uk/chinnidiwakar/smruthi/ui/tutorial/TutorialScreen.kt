@@ -1,6 +1,8 @@
 package uk.chinnidiwakar.smruthi.ui.tutorial
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -38,7 +40,9 @@ import kotlinx.coroutines.delay
 fun TutorialScreen(
     continueLabel: String,
     onContinue: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
+    onStartTraining: (() -> Unit)? = null,
+    onRunCalibration: (() -> Unit)? = null
 ) {
     val steps = remember {
         listOf(
@@ -116,24 +120,56 @@ fun TutorialScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onSkip,
-                    modifier = Modifier.weight(1f)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Skip")
+                    OutlinedButton(
+                        onClick = onSkip,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Skip")
+                    }
+
+                    Button(
+                        onClick = {
+                            if (step < steps.lastIndex) step++ else onContinue()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(if (step < steps.lastIndex) "Next" else continueLabel)
+                    }
                 }
 
-                Button(
-                    onClick = {
-                        if (step < steps.lastIndex) step++ else onContinue()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(if (step < steps.lastIndex) "Next" else continueLabel)
+                // --- Optional action buttons (shown only in tutorial/home) ---
+
+                if (onStartTraining != null || onRunCalibration != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        if (onStartTraining != null) {
+                            Button(
+                                onClick = onStartTraining,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Start Training")
+                            }
+                        }
+
+                        if (onRunCalibration != null) {
+                            OutlinedButton(
+                                onClick = onRunCalibration,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Run Calibration")
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -153,6 +189,23 @@ private fun ExampleSequence(
             activeIndex = (activeIndex + 1) % letters.size
         }
     }
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "example")
+
+    // Animate a float that continuously increases
+    val progress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = letters.size.toFloat(),
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(
+                durationMillis = letters.size * 700,
+                easing = androidx.compose.animation.core.LinearEasing
+            )
+        ),
+        label = "progress"
+    )
+
+    // Convert animation progress → current index
+    val activeIndex = progress.toInt() % letters.size
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("N-$nLevel animation", fontWeight = FontWeight.SemiBold)
@@ -167,19 +220,17 @@ private fun ExampleSequence(
                         .size(52.dp)
                         .border(
                             width = if (isCurrent) 2.dp else 1.dp,
-                            color = if (isCurrent) {
+                            color = if (isCurrent)
                                 MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.outlineVariant
-                            },
+                            else
+                                MaterialTheme.colorScheme.outlineVariant,
                             shape = RoundedCornerShape(12.dp)
                         )
                         .background(
-                            color = if (isCurrent && isMatch) {
+                            color = if (isCurrent && isMatch)
                                 MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            },
+                            else
+                                MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -189,11 +240,13 @@ private fun ExampleSequence(
             }
         }
 
-        val hint = if (activeIndex >= nLevel && letters[activeIndex] == letters[activeIndex - nLevel]) {
-            "This is a MATCH. Tap the MATCH button now."
-        } else {
-            "No match here. Wait for the next letter."
-        }
+        val hint =
+            if (activeIndex >= nLevel && letters[activeIndex] == letters[activeIndex - nLevel]) {
+                "This is a MATCH. Tap the MATCH button now."
+            } else {
+                "No match here. Wait for the next letter."
+            }
+
         Text(hint, style = MaterialTheme.typography.bodySmall)
     }
 }

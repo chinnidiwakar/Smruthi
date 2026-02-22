@@ -25,17 +25,28 @@ class NBackEngine(
     private val hitReactionTimes = mutableListOf<Long>()
     private val falseAlarmReactionTimes = mutableListOf<Long>()
     private val stimulusHistory = mutableListOf<Char>()
-
+    private var lastLetter: Char? = null
+    private var runLength: Int = 0
     private var isCurrentTarget = false
     private var userRespondedThisRound = false
 
     private var state = EngineState()
 
+    private fun applyRunLimit(candidate: Char): Char {
+        // If we already repeated twice, force a different draw
+        if (candidate == lastLetter && runLength >= 2) {
+            val alternatives = LETTERS.filter { it != candidate }
+            return alternatives.random()
+        }
+        return candidate
+    }
+
     fun nextStimulus(): EngineState {
-        val newLetter: Char
+        val candidate: Char
 
         if (stimulusHistory.size >= nLevel && Random.nextFloat() < 0.3f) {
-            newLetter = stimulusHistory[stimulusHistory.size - nLevel]
+            // Target trial (must match N-back exactly)
+            candidate = stimulusHistory[stimulusHistory.size - nLevel]
             isCurrentTarget = true
         } else {
             val forbidden =
@@ -43,11 +54,21 @@ class NBackEngine(
                     stimulusHistory[stimulusHistory.size - nLevel]
                 else null
 
-            newLetter = LETTERS
+            candidate = LETTERS
                 .filter { it != forbidden }
                 .random()
 
             isCurrentTarget = false
+        }
+
+// Apply perceptual run-length limit (safe for both target/non-target)
+        val newLetter = applyRunLimit(candidate)
+
+        if (newLetter == lastLetter) {
+            runLength++
+        } else {
+            lastLetter = newLetter
+            runLength = 1
         }
 
         stimulusStartTime = System.currentTimeMillis()
