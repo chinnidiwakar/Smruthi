@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import uk.chinnidiwakar.smruthi.ui.navigation.SmritiNavGraph
+import uk.chinnidiwakar.smruthi.ui.navigation.SmruthiAppNavGraph
 import uk.chinnidiwakar.smruthi.ui.theme.SmruthiTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SmritiNavGraph()
+                    SmruthiAppNavGraph()
                 }
             }
         }
@@ -35,7 +35,7 @@ fun SmruthiApp() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            SmritiNavGraph()
+            SmruthiAppNavGraph()
         }
     }
 }

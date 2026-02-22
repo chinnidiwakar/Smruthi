@@ -18,7 +18,7 @@ import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationFlow
 import uk.chinnidiwakar.smruthi.ui.calibration.CalibrationResultScreen
 
 @Composable
-fun SmritiNavGraph() {
+fun SmruthiAppNavGraph() {
     val navController = rememberNavController()
 
     var hasCalibrated by remember { mutableStateOf(false) }
