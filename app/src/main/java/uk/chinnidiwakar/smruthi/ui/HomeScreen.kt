@@ -3,7 +3,6 @@ package uk.chinnidiwakar.smruthi.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -11,7 +10,8 @@ import androidx.compose.ui.unit.dp
 fun HomeScreen(
     hasCalibrated: Boolean,
     onStartTraining: () -> Unit,
-    onRunCalibration: () -> Unit
+    onRunCalibration: () -> Unit,
+    onViewTutorial: () -> Unit
 ) {
 
     Column(
@@ -87,7 +87,16 @@ fun HomeScreen(
                 Text("Run Calibration")
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            TextButton(
+                onClick = onViewTutorial,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("View Tutorial")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
