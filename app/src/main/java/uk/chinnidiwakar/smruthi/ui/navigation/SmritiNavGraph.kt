@@ -106,6 +106,93 @@ object NavigationGraph {
                     }
                 )
             }
+@Composable
+fun SmruthiAppNavGraph() {
+    val navController = rememberNavController()
+
+    var hasCalibrated by remember { mutableStateOf(false) }
+    var recommendedN by remember { mutableIntStateOf(2) }
+    var latestSummary by remember { mutableStateOf<SessionSummary?>(null) }
+    var latestCalibration by remember { mutableStateOf<CalibrationResult?>(null) }
+
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") {
+            HomeScreen(
+                hasCalibrated = hasCalibrated,
+                onStartTraining = { navController.navigate("setup") },
+                onRunCalibration = { navController.navigate("calibration") }
+            )
+        }
+
+        composable("setup") {
+            SetupScreen(
+                defaultNLevel = recommendedN,
+                onStart = { nLevel, duration ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("nLevel", nLevel)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("duration", duration)
+                    navController.navigate("game")
+                }
+            )
+        }
+
+        composable("game") {
+            val nLevel = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<Int>("nLevel") ?: recommendedN
+            val duration = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<Int>("duration") ?: 120
+
+            GameScreen(
+                nLevel = nLevel,
+                duration = duration,
+                onFinish = { summary ->
+                    latestSummary = summary
+                    navController.navigate("results")
+                }
+            )
+        }
+
+        composable("results") {
+            ResultsScreen(
+                summary = latestSummary,
+                onDone = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("calibration") {
+            CalibrationFlow(
+                navController = navController,
+                onCalibrationFinished = { result ->
+                    hasCalibrated = true
+                    recommendedN = result.recommendedN
+                    latestCalibration = result
+                    navController.navigate("calibration_result")
+                }
+            )
+        }
+
+        composable("calibration_result") {
+            CalibrationResultScreen(
+                result = latestCalibration,
+                onStartTraining = { nLevel ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("nLevel", nLevel)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("duration", 120)
+                    navController.navigate("game")
+                },
+                onBackHome = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

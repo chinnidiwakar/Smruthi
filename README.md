@@ -1,6 +1,6 @@
-# 🧠 Smriti
+# 🧠 Smruthi
 
-**Smriti** is a privacy-first, offline cognitive training app focused on improving working memory using scientifically grounded N-Back training.
+**Smruthi** is a privacy-first, offline cognitive training app focused on improving working memory using scientifically grounded N-Back training.
 
 No ads.  
 No analytics.  
@@ -13,7 +13,7 @@ Just structured cognitive training.
 
 ## 🎯 Purpose
 
-Smriti is designed as a *mental gym*, not a gamified distraction tool.
+Smruthi is designed as a *mental gym*, not a gamified distraction tool.
 
 It focuses on:
 
@@ -26,7 +26,7 @@ It focuses on:
 
 ## 🔐 Privacy Philosophy
 
-Smriti is built with strict privacy principles:
+Smruthi is built with strict privacy principles:
 
 - ❌ No internet permission  
 - ❌ No analytics SDKs  
@@ -125,13 +125,13 @@ The cognitive engine is designed to be:
 Working memory training can improve task switching, attention control, and short-term retention.  
 Effects vary between individuals.
 
-Smriti makes no exaggerated cognitive enhancement claims.
+Smruthi makes no exaggerated cognitive enhancement claims.
 
 ---
 
 ## 🧘 Philosophy
 
-Smriti is intentionally:
+Smruthi is intentionally:
 
 - Minimal  
 - Calm  

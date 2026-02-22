@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import uk.chinnidiwakar.smruthi.ui.navigation.NavigationGraph
+import uk.chinnidiwakar.smruthi.ui.navigation.SmruthiAppNavGraph
 import uk.chinnidiwakar.smruthi.ui.theme.SmruthiTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     NavigationGraph.AppNavGraph()
+                    SmruthiAppNavGraph()
                 }
             }
         }
@@ -36,6 +38,7 @@ fun SmruthiApp() {
             color = MaterialTheme.colorScheme.background
         ) {
             NavigationGraph.AppNavGraph()
+            SmruthiAppNavGraph()
         }
     }
 }
