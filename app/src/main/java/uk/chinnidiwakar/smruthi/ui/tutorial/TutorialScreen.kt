@@ -181,6 +181,14 @@ private fun ExampleSequence(
     nLevel: Int,
     letters: List<Char>
 ) {
+    var activeIndex by remember(nLevel, letters) { mutableIntStateOf(0) }
+
+    LaunchedEffect(nLevel, letters) {
+        while (true) {
+            delay(700)
+            activeIndex = (activeIndex + 1) % letters.size
+        }
+    }
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "example")
 
     // Animate a float that continuously increases
