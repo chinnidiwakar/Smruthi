@@ -1,6 +1,7 @@
 package uk.chinnidiwakar.smruthi.ui.game
 
 data class GameUiState(
+    val stimulusIndex: Long = 0,
     val currentLetter: String = "",
     val timeRemaining: Int = 0,
     val hits: Int = 0,
