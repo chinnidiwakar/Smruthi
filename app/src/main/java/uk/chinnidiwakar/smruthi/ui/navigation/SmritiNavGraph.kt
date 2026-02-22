@@ -76,6 +76,33 @@ object NavigationGraph {
                     continueLabel = "Back to Home",
                     onContinue = { navController.popBackStack() },
                     onSkip = { navController.popBackStack() }
+                    onStartTraining = { navController.navigate("tutorial/training") },
+                    onRunCalibration = { navController.navigate("tutorial/calibration") }
+                )
+            }
+
+
+            composable("tutorial/training") {
+                TutorialScreen(
+                    continueLabel = "Go to Training",
+                    onContinue = {
+                        navController.navigate("setup")
+                    },
+                    onSkip = {
+                        navController.navigate("setup")
+                    }
+                )
+            }
+
+            composable("tutorial/calibration") {
+                TutorialScreen(
+                    continueLabel = "Go to Calibration",
+                    onContinue = {
+                        navController.navigate("calibration")
+                    },
+                    onSkip = {
+                        navController.navigate("calibration")
+                    }
                 )
             }
 
