@@ -3,8 +3,8 @@ package uk.chinnidiwakar.smruthi.domain
 import kotlin.random.Random
 
 private val LETTERS = listOf(
-    'B','C','D','F','G','H','J','K','L',
-    'M','N','P','Q','R','S','T','V','X','Z'
+    'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+    'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'X', 'Z'
 )
 
 data class EngineState(
@@ -20,7 +20,6 @@ data class EngineState(
 class NBackEngine(
     private val nLevel: Int
 ) {
-
     private var stimulusStartTime: Long = 0L
 
     private val hitReactionTimes = mutableListOf<Long>()
@@ -33,7 +32,6 @@ class NBackEngine(
     private var state = EngineState()
 
     fun nextStimulus(): EngineState {
-
         val newLetter: Char
 
         if (stimulusHistory.size >= nLevel && Random.nextFloat() < 0.3f) {
@@ -49,46 +47,34 @@ class NBackEngine(
                 .filter { it != forbidden }
                 .random()
 
-            stimulusStartTime = System.currentTimeMillis()
-
             isCurrentTarget = false
         }
 
+        stimulusStartTime = System.currentTimeMillis()
         stimulusHistory.add(newLetter)
         userRespondedThisRound = false
 
         state = state.copy(currentLetter = newLetter)
-
         return state
     }
 
     fun onMatchPressed(): EngineState {
-
         if (userRespondedThisRound) return state
 
         userRespondedThisRound = true
-
         val reactionTime = System.currentTimeMillis() - stimulusStartTime
 
         state = if (isCurrentTarget) {
-
             hitReactionTimes.add(reactionTime)
-
             state.copy(
                 hits = state.hits + 1,
-                averageHitReactionTimeMs =
-                    hitReactionTimes.average().toLong()
-
+                averageHitReactionTimeMs = hitReactionTimes.average().toLong()
             )
-
         } else {
-
             falseAlarmReactionTimes.add(reactionTime)
-
             state.copy(
                 falseAlarms = state.falseAlarms + 1,
-                averageFalseAlarmReactionTimeMs =
-                    falseAlarmReactionTimes.average().toLong()
+                averageFalseAlarmReactionTimeMs = falseAlarmReactionTimes.average().toLong()
             )
         }
 
@@ -96,7 +82,6 @@ class NBackEngine(
     }
 
     fun evaluateMiss(): EngineState {
-
         if (userRespondedThisRound) return state
 
         state = if (isCurrentTarget) {
