@@ -38,6 +38,9 @@ import kotlinx.coroutines.launch
 import uk.chinnidiwakar.smruthi.domain.SessionSummary
 import uk.chinnidiwakar.smruthi.ui.game.GameViewModel
 
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 @Composable
 fun GameScreen(
     nLevel: Int,
@@ -52,7 +55,7 @@ fun GameScreen(
     val scope = rememberCoroutineScope()
     val uiState by gameViewModel.uiState.collectAsState()
     val finishEvent by gameViewModel.finishEvent.collectAsState()
-
+    var onsetTrigger by remember { mutableStateOf(0L) }
     val haptics = LocalHapticFeedback.current
     var flash by remember { mutableStateOf(false) }
 
@@ -65,6 +68,10 @@ fun GameScreen(
             adaptiveEnabled = adaptiveEnabled,
             adaptiveBlockSize = adaptiveBlockSize
         )
+    }
+
+    LaunchedEffect(uiState.stimulusIndex) {
+        onsetTrigger = uiState.stimulusIndex
     }
 
     LaunchedEffect(finishEvent) {
@@ -122,13 +129,24 @@ fun GameScreen(
                     label = "stimulus"
                 ) { letter ->
 
+
+                    val pulse by animateFloatAsState(
+                        targetValue = if (onsetTrigger == uiState.stimulusIndex) 1f else 0f,
+                        animationSpec = tween(durationMillis = 120),
+                        label = "onsetPulse"
+                    )
+
                     Text(
-                        text = letter,
+                        text = uiState.currentLetter,
                         fontSize = 120.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.graphicsLayer {
-                            if (flash) scaleX = 1.08f
-                            if (flash) scaleY = 1.08f
+                            val scale = 1f + (0.08f * (1f - pulse))
+                            scaleX = scale
+                            scaleY = scale
+
+                            // tiny luminance onset — critical for perception
+                            alpha = 0.92f + (0.08f * (1f - pulse))
                         }
                     )
                 }

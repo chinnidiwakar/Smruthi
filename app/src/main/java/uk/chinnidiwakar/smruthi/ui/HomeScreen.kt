@@ -23,8 +23,7 @@ fun HomeScreen(
     hasCalibrated: Boolean,
     onStartTraining: () -> Unit,
     onRunCalibration: () -> Unit,
-    onViewTutorial: () -> Unit,
-    onViewTrends: () -> Unit
+    onViewTutorial: () -> Unit
 ) {
 
     Column(

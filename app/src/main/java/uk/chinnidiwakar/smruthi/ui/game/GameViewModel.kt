@@ -129,6 +129,8 @@ class GameViewModel : ViewModel() {
         val engineState = engine.nextStimulus()
 
         _uiState.value = _uiState.value.copy(
+            stimulusIndex = _uiState.value.stimulusIndex + 1,  // <-- KEY LINE
+
             currentLetter = engineState.currentLetter.toString(),
             currentNLevel = nLevel,
             hits = engineState.hits,
